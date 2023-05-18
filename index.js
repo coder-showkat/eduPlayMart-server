@@ -29,7 +29,17 @@ const run = async () => {
           res.status(500).send({ error: error.message });
         }
       });
-
+  
+      // get toys by category
+      app.get("/api/toys/:subCategory", async (req, res) => {
+        try {
+            const subCategory = req.params.subCategory;
+            const toys = await Toys.find({subCategory}).toArray();
+            res.send(toys);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    })
 
   } catch (error) {
     console.log(error);
