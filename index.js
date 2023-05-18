@@ -18,11 +18,25 @@ const run = async () => {
   try {
     const Toys = client.db("EduKit").collection("toys");
 
+    // get all toys
+    app.get("/api/toys", async () => {
+        try {
+          const skip = Number(req.query.page) - 1 || 0;
+          const limit = 20;
+          const toys = await Toys.find().skip(skip).limit(limit).toArray();
+          res.send(toys);
+        } catch (error) {
+          res.status(500).send({ error: error.message });
+        }
+      });
+
 
   } catch (error) {
     console.log(error);
   }
 };
+
+run();
 
 // home route
 app.get("/", (req, res) => {
