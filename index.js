@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -31,13 +31,24 @@ const run = async () => {
       });
   
       // get toys by category
-      app.get("/api/toys/:subCategory", async (req, res) => {
+      app.get("/api/toys/category/:subCategory", async (req, res) => {
         try {
             const subCategory = req.params.subCategory;
             const toys = await Toys.find({subCategory}).toArray();
             res.send(toys);
         } catch (error) {
             res.status(500).send({ error: error.message });
+        }
+    })
+
+    // get toy by id
+    app.get("/api/toys/:id", async (req, res) => {
+        try {
+            const _id = new ObjectId(req.params.id);
+            const toy = await Toys.findOne({_id});
+            res.send(toy);
+        } catch (error) {
+            res.status(500).send({ error: error.message }); 
         }
     })
 
