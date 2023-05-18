@@ -19,7 +19,7 @@ const run = async () => {
     const Toys = client.db("EduKit").collection("toys");
 
     // get all toys
-    app.get("/api/toys", async () => {
+    app.get("/api/toys", async (req, res) => {
         try {
           const skip = Number(req.query.page) - 1 || 0;
           const limit = 20;
