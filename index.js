@@ -20,54 +20,102 @@ const run = async () => {
 
     // get all toys
     app.get("/api/toys", async (req, res) => {
-        try {
-          const skip = Number(req.query.page) - 1 || 0;
-          const limit = 20;
-          const toys = await Toys.find().skip(skip).limit(limit).toArray();
-          res.send(toys);
-        } catch (error) {
-          res.status(500).send({ error: error.message });
+      try {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+        const sort = req.query.sort;
+        const search = req.query.search || "";
+        let toys;
+        switch (sort) {
+          case "price-ascending": {
+            toys = search
+              ? await Toys.find({ $text: { $search: search } })
+                  .sort({ price: 1 })
+                  .skip(skip)
+                  .limit(limit)
+                  .toArray()
+              : await Toys.find()
+                  .sort({ price: 1 })
+                  .skip(skip)
+                  .limit(limit)
+                  .toArray();
+            break;
+          }
+          case "price-descending": {
+            toys = search
+              ? await Toys.find({ $text: { $search: search } })
+                  .sort({ price: -1 })
+                  .skip(skip)
+                  .limit(limit)
+                  .toArray()
+              : await Toys.find()
+                  .sort({ price: -1 })
+                  .skip(skip)
+                  .limit(limit)
+                  .toArray();
+            break;
+          }
+          default: {
+            toys = search
+              ? await Toys.find({ $text: { $search: search } })
+                  .skip(skip)
+                  .limit(limit)
+                  .toArray()
+              : await Toys.find().skip(skip).limit(limit).toArray();
+          }
         }
-      });
-  
-      // get toys by category
-      app.get("/api/toys/category/:subCategory", async (req, res) => {
-        try {
-            const subCategory = req.params.subCategory;
-            const toys = await Toys.find({subCategory}).toArray();
-            res.send(toys);
-        } catch (error) {
-            res.status(500).send({ error: error.message });
-        }
-    })
+
+        const total = search
+          ? await Toys.countDocuments({ $text: { $search: search } })
+          : await Toys.countDocuments();
+
+        res.send({ toys, total });
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+    // get toys by category
+    app.get("/api/toys/category/:subCategory", async (req, res) => {
+      try {
+        const subCategory = req.params.subCategory;
+        const toys = await Toys.find({ subCategory }).toArray();
+        res.send(toys);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
 
     // get toy by id
     app.get("/api/toys/:id", async (req, res) => {
-        try {
-            const _id = new ObjectId(req.params.id);
-            const toy = await Toys.findOne({_id});
-            res.send(toy);
-        } catch (error) {
-            res.status(500).send({ error: error.message }); 
-        }
-    })
+      try {
+        const _id = new ObjectId(req.params.id);
+        const toy = await Toys.findOne({ _id });
+        res.send(toy);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
 
     // get related toys by id
     app.get("/api/toys/related-toys/:id", async (req, res) => {
-        try {
-            const _id = new ObjectId(req.params.id);
-            const toy = await Toys.findOne({_id});
-            if (toy) {
-                const relatedToys = await Toys.find({subCategory: toy.subCategory, _id: {$ne: toy._id}}).toArray();
-                res.send(relatedToys);
-            } else {
-                res.status(404).send({ error: "No toys found!" });
-            }
-        } catch (error) {
-            res.status(500).send({ error: error.message }); 
+      try {
+        const _id = new ObjectId(req.params.id);
+        const toy = await Toys.findOne({ _id });
+        if (toy) {
+          const relatedToys = await Toys.find({
+            subCategory: toy.subCategory,
+            _id: { $ne: toy._id },
+          }).toArray();
+          res.send(relatedToys);
+        } else {
+          res.status(404).send({ error: "No toys found!" });
         }
-    })
-
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
   } catch (error) {
     console.log(error);
   }
