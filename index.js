@@ -52,6 +52,22 @@ const run = async () => {
         }
     })
 
+    // get related toys by id
+    app.get("/api/toys/related-toys/:id", async (req, res) => {
+        try {
+            const _id = new ObjectId(req.params.id);
+            const toy = await Toys.findOne({_id});
+            if (toy) {
+                const relatedToys = await Toys.find({subCategory: toy.subCategory, _id: {$ne: toy._id}}).toArray();
+                res.send(relatedToys);
+            } else {
+                res.status(404).send({ error: "No toys found!" });
+            }
+        } catch (error) {
+            res.status(500).send({ error: error.message }); 
+        }
+    })
+
   } catch (error) {
     console.log(error);
   }
