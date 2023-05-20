@@ -33,8 +33,12 @@ const client = new MongoClient(uri);
 
 const run = async () => {
   try {
-    const Toys = client.db("EduPlayMart").collection("toys");
-    const Blogs = client.db("EduPlayMart").collection("blogs");
+    const EduPlayMart = client.db("EduPlayMart");
+    const Toys = EduPlayMart.collection("toys");
+    const HIWContents = EduPlayMart.collection("hiw-contents");
+    const Gallery = EduPlayMart.collection("gallery");
+    const Testimonials = EduPlayMart.collection("testimonials");
+    const Blogs = EduPlayMart.collection("blogs");
 
     // get all toys
     app.get("/api/toys", async (req, res) => {
@@ -210,6 +214,37 @@ const run = async () => {
       }
     });
 
+    // get how it works contents
+    app.get("/api/hiw-contents", async (req, res) => {
+        try {
+          const contents = await HIWContents.find().toArray();
+          res.send(contents);
+        } catch (error) {
+          res.status(500).send({ error: error.message });
+        }
+      });
+
+
+      // get gallery image
+      app.get("/api/gallery", async (req, res) => {
+        try {
+          const gallery = await Gallery.find().toArray();
+          res.send(gallery);
+        } catch (error) {
+          res.status(500).send({ error: error.message });
+        }
+      });
+
+    // get testimonials
+    app.get("/api/testimonials", async (req, res) => {
+      try {
+        const testimonials = await Testimonials.find().toArray();
+        res.send(testimonials);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
+
     // get all blogs
     app.get("/api/blogs", async (req, res) => {
       try {
@@ -220,7 +255,7 @@ const run = async () => {
       }
     });
 
-    // get get blog by id
+    // get blog by id
     app.get("/api/blogs/:id", async (req, res) => {
       try {
         const _id = new ObjectId(req.params.id);
