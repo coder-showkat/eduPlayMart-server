@@ -185,6 +185,17 @@ const run = async () => {
         }
     })
 
+    // delete a toy
+    app.delete("/api/seller/toys/:id", verifyToken, async (req, res) => {
+        try {
+            const _id = new ObjectId(req.params.id);
+            const result = await Toys.deleteOne({_id});
+            res.send(result);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    })
+
 
   } catch (error) {
     console.log(error);
