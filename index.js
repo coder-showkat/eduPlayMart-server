@@ -30,12 +30,18 @@ const verifyToken = (req, res, next) => {
 };
 
 // mongodb
-const uri = "mongodb://127.0.0.1:27017";
+const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.bukpahx.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri);
 
 const run = async () => {
   try {
-    const Toys = client.db("EduKit").collection("toys");
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    const Toys = client.db("EduPlayMart").collection("toys");
+
+    // create text index
+    await Toys.createIndex({name: "text"});
+
 
     // get all toys
     app.get("/api/toys", async (req, res) => {
@@ -45,6 +51,7 @@ const run = async () => {
         const skip = (page - 1) * limit;
         const sort = req.query.sort;
         const search = req.query.search || "";
+  
         let toys;
         switch (sort) {
           case "price-ascending": {
@@ -150,7 +157,10 @@ const run = async () => {
     app.get("/api/seller/toys", verifyToken, async (req, res) => {
         try {
             const {email} = req.decoded;
-            const toys = await Toys.find({sellerEmail: email}).toArray();
+            const sort = req.query.sort;
+            const result = Toys.find({sellerEmail: email});
+            const sortedResult = sort === "price-ascending" ? result.sort({price: 1}) : sort === "price-descending" ? result.sort({price: -1}) : result;
+            const toys = await sortedResult.toArray();
             res.send(toys);
         } catch (error) {
             res.status(500).send({ error: error.message });
