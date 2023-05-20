@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
@@ -9,6 +10,24 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
+
+
+
+// verify jwt token
+const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) {
+        res.status(401).send({error: "unauthorized user"});
+        return;
+    }
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    if (decoded) {
+        req.decoded = decoded;
+        next();
+    } else {
+        res.status(401).send({error: "unauthorized user"});
+    }
+};
 
 // mongodb
 const uri = "mongodb://127.0.0.1:27017";
@@ -116,6 +135,30 @@ const run = async () => {
         res.status(500).send({ error: error.message });
       }
     });
+
+    // generate jwt access token
+    app.post("/api/jwt", async (req, res) => {
+      try {
+        const token = jwt.sign(req.body, process.env.SECRET_KEY, {expiresIn: "2d"});
+        res.send({ token: "Bearer " + token });
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+    // get toys by seller jwt token
+    app.get("/api/seller/toys", verifyToken, async (req, res) => {
+        try {
+            const {email} = req.decoded;
+            const toys = await Toys.find({sellerEmail: email}).toArray();
+            res.send(toys);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    })
+
+
+
   } catch (error) {
     console.log(error);
   }
@@ -125,7 +168,9 @@ run();
 
 // home route
 app.get("/", (req, res) => {
-  res.send("<h1 style='text-align: center;'>Welcome to EduKit Server</h1>");
+  res.send(
+    "<h1 style='text-align: center;'>Welcome to EduPlayMart Server</h1>"
+  );
 });
 
 app.listen(port, () => {
