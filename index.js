@@ -157,6 +157,33 @@ const run = async () => {
         }
     })
 
+    // add a toy
+    app.post("/api/seller/toys", verifyToken, async (req, res) => {
+        try {
+            const {email} = req.decoded;
+            if (email !== req.body.sellerEmail) {
+                res.status(403).send({error: "bad auth"});
+                return;
+            }
+            const result = await Toys.insertOne(req.body);
+            res.status(201).send(result);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    })
+
+
+    // update a toy
+    app.put("/api/seller/toys/:id", verifyToken, async (req, res) => {
+        try {
+            const _id = new ObjectId(req.params.id);
+            const {price, availableQty, details} = req.body;
+            const result = await Toys.updateOne({_id}, {$set: {price, availableQty, details}});
+            res.send(result);
+        } catch (error) {
+            res.status(500).send({ error: error.message });
+        }
+    })
 
 
   } catch (error) {
