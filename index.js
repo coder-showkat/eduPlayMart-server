@@ -34,11 +34,33 @@ const client = new MongoClient(uri);
 const run = async () => {
   try {
     const EduPlayMart = client.db("EduPlayMart");
+    const BannerContents = EduPlayMart.collection("banner-contents");
+    const Features = EduPlayMart.collection("features");
     const Toys = EduPlayMart.collection("toys");
     const HIWContents = EduPlayMart.collection("hiw-contents");
     const Gallery = EduPlayMart.collection("gallery");
     const Testimonials = EduPlayMart.collection("testimonials");
     const Blogs = EduPlayMart.collection("blogs");
+
+    // get banner contents
+    app.get("/api/banner-contents", async (req, res) => {
+      try {
+        const bannerContents = await BannerContents.find().toArray();
+        res.send(bannerContents);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
+
+    // get feature contents
+    app.get("/api/features", async (req, res) => {
+      try {
+        const features = await Features.find().toArray();
+        res.send(features);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
 
     // get all toys
     app.get("/api/toys", async (req, res) => {
@@ -216,24 +238,23 @@ const run = async () => {
 
     // get how it works contents
     app.get("/api/hiw-contents", async (req, res) => {
-        try {
-          const contents = await HIWContents.find().toArray();
-          res.send(contents);
-        } catch (error) {
-          res.status(500).send({ error: error.message });
-        }
-      });
+      try {
+        const contents = await HIWContents.find().toArray();
+        res.send(contents);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
 
-
-      // get gallery image
-      app.get("/api/gallery", async (req, res) => {
-        try {
-          const gallery = await Gallery.find().toArray();
-          res.send(gallery);
-        } catch (error) {
-          res.status(500).send({ error: error.message });
-        }
-      });
+    // get gallery image
+    app.get("/api/gallery", async (req, res) => {
+      try {
+        const gallery = await Gallery.find().toArray();
+        res.send(gallery);
+      } catch (error) {
+        res.status(500).send({ error: error.message });
+      }
+    });
 
     // get testimonials
     app.get("/api/testimonials", async (req, res) => {
